@@ -1,0 +1,19 @@
+* <2012-03-10 Sat>
+** Todo
+   - [ ] Add below canvas
+     - Slider
+     - Play
+     - Stop
+     - Previous frame
+     - Next frame
+   - [ ] Add backgrund frame
+   - [ ] Add background color
+   - [ ] Standalone viewer that can read json serialized frames.
+   - [ ] Add option to export frames to file in json.
+   - [ ] Convert frames to a movie.
+   - [ ] Drawing commands:
+     - Image
+   - Sync with an audio clip. This would turn this into a framework for recording scale independent Khan-accademy like lectures.
+     
+   
+   
