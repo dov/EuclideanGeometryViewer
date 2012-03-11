@@ -9,7 +9,7 @@ This module is installed as a standard python module.
 # Usage
 
     import Euv.Frame as Frame
-    import Euv.Gtk as Euv
+    import Euv.EuvGtk as Euv
     import Euv.Color as Color
     import time
     
