@@ -29,7 +29,9 @@ class App(gtk.Window):
                size=None,
                view_port_center=(0,0),
                view_port_width=None,
-               view_port_height=None):
+               view_port_height=None,
+               recording=True,
+               max_num_frames=None):
     gtk.gdk.threads_init()
 
     if size is None:
@@ -54,26 +56,30 @@ class App(gtk.Window):
     self.vbox.pack_start(self.canvas, True,True,0)
     hbox = gtk.HBox(False,0)
     self.vbox.pack_start(hbox, False,True,0)
-    self.buttonbox = gtk.HBox(False,0)
-    hbox.pack_start(self.buttonbox, True,False,0)
-    
-    self.button_previous = image_button(stock=gtk.STOCK_MEDIA_REWIND)
-    self.button_previous.connect("clicked", self.on_button_previous_clicked)
-    self.buttonbox.pack_start(self.button_previous, False,False,0)
-
-    self.button_pause = image_button(stock=gtk.STOCK_MEDIA_PAUSE)
-    self.button_pause.connect("clicked", self.on_button_pause_clicked)
-    self.buttonbox.pack_start(self.button_pause, False,False,0)
-
-    self.button_next = image_button(stock=gtk.STOCK_MEDIA_FORWARD)
-    self.button_next.connect("clicked", self.on_button_next_clicked)
-    self.buttonbox.pack_start(self.button_next, False,False,0)
-
-    self.frame_scale = gtk.HScale()
-    self.frame_adjustment = self.frame_scale.get_adjustment()
-    self.frame_adjustment.connect("value-changed",self.on_frame_adjustment_value_changed)
-    self.frame_scale.set_size_request(400,-1)
-    self.buttonbox.pack_start(self.frame_scale, True,True,0)
+    self.recording = recording
+    if recording:
+      self.buttonbox = gtk.HBox(False,0)
+      hbox.pack_start(self.buttonbox, True,False,0)
+      self.button_previous = image_button(stock=gtk.STOCK_MEDIA_REWIND)
+      self.button_previous.connect("clicked", self.on_button_previous_clicked)
+      self.buttonbox.pack_start(self.button_previous, False,False,0)
+  
+      self.button_pause = image_button(stock=gtk.STOCK_MEDIA_PAUSE)
+      self.button_pause.connect("clicked", self.on_button_pause_clicked)
+      self.buttonbox.pack_start(self.button_pause, False,False,0)
+  
+      self.button_next = image_button(stock=gtk.STOCK_MEDIA_FORWARD)
+      self.button_next.connect("clicked", self.on_button_next_clicked)
+      self.buttonbox.pack_start(self.button_next, False,False,0)
+  
+      self.frame_scale = gtk.HScale()
+      self.frame_adjustment = self.frame_scale.get_adjustment()
+      self.frame_scale.set_digits(0)
+      self.frame_adjustment.connect("value-changed",self.on_frame_adjustment_value_changed)
+      self.frame_scale.set_size_request(400,-1)
+      self.buttonbox.pack_start(self.frame_scale, True,True,0)
+      if not max_num_frames is None:
+        self.set_max_num_frames(max_num_frames)
 
     self.connect("delete_event", self.on_delete_event)
     self._user_break = False
@@ -90,7 +96,7 @@ class App(gtk.Window):
     self.pause = not self.pause
 
   def on_button_next_clicked(self, widget):
-    if self.current_frame < len(self.frames):
+    if self.current_frame < len(self.frames)-1:
       self.set_current_frame(self.current_frame+1)
 
   def on_button_previous_clicked(self, widget):
@@ -126,14 +132,26 @@ class App(gtk.Window):
                     self.canvas.allocation.height)
     self.canvas.queue_draw_area(0,0,width,height)
 
+  def get_max_num_frames(self):
+    return self.frame_adjustment.get_property("upper")
+
+  def set_max_num_frames(self, max_num_frames):
+    self.frame_adjustment.set_property("upper",max_num_frames)
+
   def set_current_frame(self, index):
     self.current_frame = index
-    self.frame_adjustment.set_value(index)
+    if self.recording:
+      self.frame_adjustment.set_value(index)
     gobject.idle_add(self.redraw)
     
   def add_frame(self, frame):
     self.frames.append(frame)
-    self.frame_adjustment.set_upper(len(self.frames))
+    if self.recording:
+      num_frames = len(self.frames)-1
+      max_frames = self.get_max_num_frames()
+      if len(self.frames)-1 > self.get_max_num_frames():
+        self.set_max_num_frames(num_frames)
+
     if not self.pause:
       self.set_current_frame(len(self.frames)-1)
 
@@ -145,18 +163,18 @@ class App(gtk.Window):
                       event.area.width, event.area.height)
     cr.clip()
 
-    # Scale
     width,height = (self.canvas.allocation.width,
                     self.canvas.allocation.height)
-    cr.translate(width/2-self.view_port_center[0],
-                      height/2-self.view_port_center[0])
-
+    # Scale
     if not self.view_port_width is None:
-      cr.scale(1.0*width/self.view_port_width,
-                    1.0*width/self.view_port_width)
+      sx = sy = 1.0*width/self.view_port_width
     else:
-      cr.scale(1.0*height/self.view_port_height,
-                    1.0*height/self.view_port_height)
+      sx = sy = 1.0*height/self.view_port_height
+
+    cr.translate(width/2-self.view_port_center[0]*sx,
+                 height/2-self.view_port_center[1]*sy)
+
+    cr.scale(sx,sy)
 
     if self.current_frame < 0:
       return
@@ -165,7 +183,10 @@ class App(gtk.Window):
     for dc in self.frames[self.current_frame].display_list:
       if 'color' in dc:
         self.rgb = dc['color'].rgb()
-        cr.set_source_rgb(*self.rgb)
+        if 'alpha' in dc:
+          cr.set_source_rgba(self.rgb[0],self.rgb[1],self.rgb[2],dc['alpha'])
+        else:
+          cr.set_source_rgb(*self.rgb)
 
       if dc['type']==Frame.DrawingCommandCircle:
         radius = get_val_default(dc,'radius',10)
@@ -210,12 +231,16 @@ class Viewer:
   def __init__(self,
                size=None,
                view_port_center=(0,0),
-               view_port_width=None):
+               view_port_width=None,
+               recording=True,
+               max_num_frames=None):
     # init gtk
     # Start the gtk application in a different thread
     self.app=App(size=size,
                  view_port_center=view_port_center,
-                 view_port_width=view_port_width)
+                 view_port_width=view_port_width,
+                 recording=recording,
+                 max_num_frames=max_num_frames)
     self.t = Viewer.MyThread(self.app)
     self.t.start()
     self.frames = []
@@ -234,3 +259,5 @@ class Viewer:
   def add_frame(self,frame):
     self.app.add_frame(frame)
 
+  def set_max_num_frames(self,max_num_frames):
+    self.app.set_max_num_frames(max_num_frames)

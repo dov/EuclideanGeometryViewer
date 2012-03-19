@@ -53,7 +53,8 @@ class Frame:
 
   def add_polygons(self,
                    polygons=None,
-                   color=None):
+                   color=None,
+                   alpha=None):
     
     if polygons is None:
       return
@@ -61,6 +62,8 @@ class Frame:
             "polygons":polygons  };
     if not color is None:
       Cmd['color']=color
+    if not alpha is None:
+      Cmd['alpha']=alpha
     self.display_list += [Cmd]
 
   def add_lines(self,

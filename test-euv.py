@@ -4,11 +4,12 @@ import Euv.Color as Color
 import time
 import math
 
+N=200
 v = Euv.Viewer(size=(800,600),
                view_port_center = (0,0),
-               view_port_width = 800)
-
-N=200
+               view_port_width = 800,
+               max_num_frames=N,
+               recording=False)
 for i in range(N):
     f = Frame.Frame()
     x = 400 * 1.0*(i-N/2)/N
