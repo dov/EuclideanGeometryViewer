@@ -145,15 +145,19 @@ class App(gtk.Window):
     gobject.idle_add(self.redraw)
     
   def add_frame(self, frame):
-    self.frames.append(frame)
     if self.recording:
+      self.frames.append(frame)
       num_frames = len(self.frames)-1
       max_frames = self.get_max_num_frames()
       if len(self.frames)-1 > self.get_max_num_frames():
         self.set_max_num_frames(num_frames)
 
-    if not self.pause:
-      self.set_current_frame(len(self.frames)-1)
+    if self.recording:
+      if not self.pause:
+        self.set_current_frame(len(self.frames)-1)
+    else:
+      self.frames=[frame]
+      self.set_current_frame(0)
 
   def on_canvas_expose(self,widget,event):
     cr = widget.window.cairo_create()
@@ -200,6 +204,7 @@ class App(gtk.Window):
             cr.line_to(*p)
         cr.fill()
       elif dc['type']==Frame.DrawingCommandLines:
+        cr.set_line_width(dc['linewidth'])
         for line in dc['lines']:
           cr.move_to(*line[0])
           for p in line[1:]:
@@ -246,6 +251,7 @@ class Viewer:
     self.frames = []
 
   def wait(self):
+    self.app.set_current_frame(0)
     self.t.join()
 
   def user_break(self):

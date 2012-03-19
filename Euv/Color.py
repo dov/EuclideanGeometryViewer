@@ -754,10 +754,13 @@ color_table = {
 }
 class Color:
   def __init__(self, color):
-    try:
-      self.color = tuple([1.0/255*c for c in color_table[color]])
-    except KeyError:
-      self.color = (1,0,0)
+    if isinstance(color,Color):
+      self.color = color.rgb()
+    else:
+      try:
+        self.color = tuple([1.0/255*c for c in color_table[color]])
+      except KeyError:
+        self.color = (1,0,0)
 
   def rgb(self):
     return self.color

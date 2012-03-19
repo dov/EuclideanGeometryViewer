@@ -19,68 +19,68 @@ class DrawingCommandLines:
 class Frame:
   def __init__(self):
     self.display_list = []
-    self.current_color = Color.Color("red")
 
+  def _add_command(self, cmd_type, generic_params, **kwargs):
+    # Set defaults
+    Cmd = { 'linewidth':1.0,
+            'color':Color.Color("red") }
+
+    # TBD - Check generic parameters against known params
+
+    # Override
+    for k in generic_params:
+      if generic_params[k] is None:
+        continue
+      if k == 'color':
+        Cmd[k] = Color.Color(generic_params[k])
+      else:
+        Cmd[k] = generic_params[k]
+
+    # Set type
+    Cmd['type'] = cmd_type
+
+    # Set specific params
+    for k in kwargs:
+      if kwargs[k] is None:
+        continue
+      Cmd[k] = kwargs[k]
+
+    self.display_list.append(Cmd)
+    
   def add_circle(self,
-                 color=None,
                  pos=(0,0),
-                 radius = None):
-    Cmd = { "type":DrawingCommandCircle,
-            "pos":pos}
-    if not radius is None:
-      Cmd['radius']=radius
-    if not color is None:
-      Cmd['color'] = color
-    self.display_list += [Cmd]
+                 radius = 1,
+                 **kwargs):
+
+    self._add_command(DrawingCommandCircle,
+                      kwargs,
+                      pos=pos,
+                      radius=radius)
 
   def add_text(self,
                face = None,
                size = None,
                pos = (0,0),
                text = None,
-               color=None):
-    
-    Cmd = { "type":DrawingCommandText,
-            "pos":pos,
-            "text":text}
-    if not face is None:
-      Cmd['face']=face
-    if not size is None:
-      Cmd['size']=size
-    if not color is None:
-      Cmd['color']=color
-    self.display_list += [Cmd]
+               **kwargs):
+    self._add_command(DrawingCommandText,
+                      kwargs,
+                      face=face,
+                      size=size,
+                      text=text,
+                      pos=pos)
 
   def add_polygons(self,
                    polygons=None,
-                   color=None,
-                   alpha=None):
-    
-    if polygons is None:
-      return
-    Cmd = { "type":DrawingCommandPolygons,
-            "polygons":polygons  };
-    if not color is None:
-      Cmd['color']=color
-    if not alpha is None:
-      Cmd['alpha']=alpha
-    self.display_list += [Cmd]
+                   **kwargs):
+    self._add_command(DrawingCommandPolygons,
+                      kwargs,
+                      polygons=polygons)
 
   def add_lines(self,
                 lines=None,
-                color=None):
-    
-    if lines is None:
-      return
-    Cmd = { "type":DrawingCommandLines,
-            "lines":lines  };
-    if not color is None:
-      Cmd['color']=color
-    self.display_list += [Cmd]
+                **kwargs):
+    self._add_command(DrawingCommandLines,
+                      kwargs,
+                      lines=lines)
 
-  def set_color(self,
-                color = Color.Color("red")):
-    self.display_list += [{'color':color}]
-  
-    
-    

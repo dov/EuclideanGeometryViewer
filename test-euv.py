@@ -1,6 +1,7 @@
 import Euv.Frame as Frame
 import Euv.EuvGtk as Euv
 import Euv.Color as Color
+import Euv.Shapes as Shapes
 import time
 import math
 
@@ -28,6 +29,17 @@ for i in range(N):
                                 (x+40,100),
                                 (x+35,110)],
                                ])
+    arw = Shapes.arrow_head_polygon((x,-25),
+                                    scale=10)
+    rect = Shapes.rotated_rectangle((x,25),
+                                    width=50,
+                                    height=10,
+                                    angle=1.0*i/N * math.pi*2,
+                                    )
+    f.add_polygons(polygons = [arw,
+                               rect],
+                   color="cyan",
+                   alpha=0.5)
     f.add_text(pos=(250,200),
                face="Sans",
                size=20,
