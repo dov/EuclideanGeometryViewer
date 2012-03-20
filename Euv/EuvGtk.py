@@ -31,7 +31,8 @@ class App(gtk.Window):
                view_port_width=None,
                view_port_height=None,
                recording=True,
-               max_num_frames=None):
+               max_num_frames=None,
+               flip_y=False):
     gtk.gdk.threads_init()
 
     if size is None:
@@ -57,6 +58,7 @@ class App(gtk.Window):
     hbox = gtk.HBox(False,0)
     self.vbox.pack_start(hbox, False,True,0)
     self.recording = recording
+    self.flip_y = flip_y
     if recording:
       self.buttonbox = gtk.HBox(False,0)
       hbox.pack_start(self.buttonbox, True,False,0)
@@ -164,7 +166,7 @@ class App(gtk.Window):
     
     # set a clip region for the expose event
     cr.rectangle(event.area.x, event.area.y,
-                      event.area.width, event.area.height)
+                 event.area.width, event.area.height)
     cr.clip()
 
     width,height = (self.canvas.allocation.width,
@@ -175,6 +177,8 @@ class App(gtk.Window):
     else:
       sx = sy = 1.0*height/self.view_port_height
 
+    if self.flip_y:
+      sy = -sy
     cr.translate(width/2-self.view_port_center[0]*sx,
                  height/2-self.view_port_center[1]*sy)
 
@@ -209,6 +213,8 @@ class App(gtk.Window):
           cr.move_to(*line[0])
           for p in line[1:]:
             cr.line_to(*p)
+        if 'closepath' in dc:
+          cr.close_path()
         cr.stroke()
       elif dc['type']==Frame.DrawingCommandText:
         if 'face' in dc:
@@ -217,8 +223,12 @@ class App(gtk.Window):
                               cairo.FONT_WEIGHT_NORMAL)
         if 'size' in dc:
           cr.set_font_size(dc['size'])
-        cr.move_to(dc['pos'][0],dc['pos'][1])
+        cr.save()
+        cr.translate(dc['pos'][0],dc['pos'][1])
+        if self.flip_y:
+          cr.scale(1,-1)
         cr.show_text(dc['text'])
+        cr.restore()
 
 class Viewer:
   class MyThread(threading.Thread):
@@ -238,14 +248,16 @@ class Viewer:
                view_port_center=(0,0),
                view_port_width=None,
                recording=True,
-               max_num_frames=None):
+               max_num_frames=None,
+               flip_y=False):
     # init gtk
     # Start the gtk application in a different thread
     self.app=App(size=size,
                  view_port_center=view_port_center,
                  view_port_width=view_port_width,
                  recording=recording,
-                 max_num_frames=max_num_frames)
+                 max_num_frames=max_num_frames,
+                 flip_y = flip_y)
     self.t = Viewer.MyThread(self.app)
     self.t.start()
     self.frames = []

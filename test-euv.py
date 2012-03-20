@@ -10,7 +10,8 @@ v = Euv.Viewer(size=(800,600),
                view_port_center = (0,0),
                view_port_width = 800,
                max_num_frames=N,
-               recording=False)
+               recording=True,
+               flip_y = True)
 for i in range(N):
     f = Frame.Frame()
     x = 400 * 1.0*(i-N/2)/N
