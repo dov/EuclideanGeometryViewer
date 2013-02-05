@@ -37,10 +37,18 @@ for i in range(N):
                                     height=10,
                                     angle=1.0*i/N * math.pi*2,
                                     )
+    wheels = Shapes.rectangle_pair((x,-25),
+                                   5.,2.,7.,
+                                   left_angle = 1.0*i/N * math.pi*2,
+                                   scale=10)
     f.add_polygons(polygons = [arw,
                                rect],
                    color="cyan",
                    alpha=0.5)
+    f.add_polygons(polygons = wheels,
+                   color="black",
+                   alpha=0.7)
+
     f.add_text(pos=(250,200),
                face="Sans",
                size=20,

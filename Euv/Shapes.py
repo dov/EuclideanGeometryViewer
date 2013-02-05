@@ -42,7 +42,7 @@ def rotated_rectangle(pos,
                       width=2,
                       height=1,
                       scale=1.0):
-  """Create a rotated arrow head at position x,y in the direction angle.
+  """Create a rotated rectangle at position x,y in the direction angle.
   """
   # Unroted coordinates around zero. "dip" at (0,0)
   unrot_poly = [[-width*0.5,-height*0.5],
@@ -52,3 +52,26 @@ def rotated_rectangle(pos,
 
   # Add pi/2 to make arrow point forward by default
   return rotate_and_move_poly(unrot_poly, angle, pos, scale=scale)
+
+def rectangle_pair(pos,
+                   rectangle_width,
+                   rectangle_height,
+                   rectangle_center_distance,
+                   angle=0,
+                   left_angle=0,
+                   right_angle=0,
+                   scale=1.0):
+  """A rectangle pair may be used for drawing two wheels"""
+  p_left = rotated_rectangle((0,-0.5*rectangle_center_distance),
+                             left_angle,
+                             rectangle_width,
+                             rectangle_height)
+  p_right = rotated_rectangle((0,0.5*rectangle_center_distance),
+                              right_angle,
+                              rectangle_width,
+                              rectangle_height)
+  p_left = rotate_and_move_poly(p_left, angle, pos, scale=scale)
+  p_right = rotate_and_move_poly(p_right, angle, pos, scale=scale)
+
+  return (p_left, p_right)
+                   
