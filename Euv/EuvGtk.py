@@ -33,6 +33,7 @@ class App(gtk.Window):
                recording=True,
                max_num_frames=None,
                flip_y=False):
+    gobject.threads_init()
     gtk.gdk.threads_init()
 
     if size is None:
@@ -218,13 +219,17 @@ class App(gtk.Window):
         cr.stroke()
       elif dc['type']==Frame.DrawingCommandText:
         if 'face' in dc:
+          weight = cairo.FONT_WEIGHT_NORMAL
+          if "bold" in dc['face'].lower():
+            weight = cairo.FONT_WEIGHT_BOLD
           cr.select_font_face(dc['face'],
                               cairo.FONT_SLANT_NORMAL,
-                              cairo.FONT_WEIGHT_NORMAL)
+                              weight)
         if 'size' in dc:
           cr.set_font_size(dc['size'])
         cr.save()
         cr.translate(dc['pos'][0],dc['pos'][1])
+        cr.move_to(0,0)
         if self.flip_y:
           cr.scale(1,-1)
         cr.show_text(dc['text'])
@@ -241,7 +246,9 @@ class Viewer:
     def run(self):
       """Show application and run gtk.main"""
       self.app.show_all()
+      gtk.threads_enter()
       gtk.main()
+      gtk.threads_leave()
 
   def __init__(self,
                size=None,
