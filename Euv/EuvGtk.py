@@ -1,6 +1,8 @@
 import Euv
 import gtk
 import cairo
+import pango
+import pangocairo
 import threading
 import gobject
 import Frame
@@ -32,7 +34,8 @@ class App(gtk.Window):
                view_port_height=None,
                recording=True,
                max_num_frames=None,
-               flip_y=False):
+               flip_y=False,
+               title = 'Euv'):
     gobject.threads_init()
     gtk.gdk.threads_init()
 
@@ -45,6 +48,7 @@ class App(gtk.Window):
     self.view_port_height = view_port_height
 
     super(App,self).__init__(gtk.WINDOW_TOPLEVEL)
+    self.set_title(title)
     
     settings = gtk.settings_get_default()
     settings.set_long_property("gtk-button-images", 1, '*')
@@ -218,22 +222,50 @@ class App(gtk.Window):
           cr.close_path()
         cr.stroke()
       elif dc['type']==Frame.DrawingCommandText:
-        if 'face' in dc:
-          weight = cairo.FONT_WEIGHT_NORMAL
-          if "bold" in dc['face'].lower():
-            weight = cairo.FONT_WEIGHT_BOLD
-          cr.select_font_face(dc['face'],
-                              cairo.FONT_SLANT_NORMAL,
-                              weight)
-        if 'size' in dc:
-          cr.set_font_size(dc['size'])
-        cr.save()
-        cr.translate(dc['pos'][0],dc['pos'][1])
-        cr.move_to(0,0)
-        if self.flip_y:
-          cr.scale(1,-1)
-        cr.show_text(dc['text'])
-        cr.restore()
+        if 'markup' in dc:
+          pango_ctx = pangocairo.CairoContext(cr)
+          layout = pango_ctx.create_layout()
+          layout.set_font_description(pango.FontDescription(dc['face']))
+          layout.set_markup(dc['markup'])
+          cr.save()
+          cr.translate(dc['pos'][0],dc['pos'][1])
+          cr.move_to(0,0)
+          
+          if 'align' in dc:
+            s = 1.0/pango.SCALE
+            ink_box,log_box = layout.get_extents()
+            text_width,text_height = s*log_box[2],s*log_box[3]
+
+            if dc['align'].lower() == 'center':
+              ink_box,log_box = layout.get_extents()
+              cr.move_to(-text_width/2,0)
+              layout.set_alignment(pango.ALIGN_CENTER)
+            elif dc['align'].lower() == 'right':
+              ink_box,log_box = layout.get_extents()
+              cr.move_to(-text_width,0)
+              layout.set_alignment(pango.ALIGN_RIGHT)
+
+          if self.flip_y:
+            cr.scale(1,-1)
+          pango_ctx.show_layout(layout)
+          cr.restore()
+        else:
+          if 'face' in dc:
+            weight = cairo.FONT_WEIGHT_NORMAL
+            if "bold" in dc['face'].lower():
+              weight = cairo.FONT_WEIGHT_BOLD
+            cr.select_font_face(dc['face'],
+                                cairo.FONT_SLANT_NORMAL,
+                                weight)
+          if 'size' in dc:
+            cr.set_font_size(dc['size'])
+          cr.save()
+          cr.translate(dc['pos'][0],dc['pos'][1])
+          cr.move_to(0,0)
+          if self.flip_y:
+            cr.scale(1,-1)
+          cr.show_text(dc['text'])
+          cr.restore()
 
 class Viewer:
   class MyThread(threading.Thread):

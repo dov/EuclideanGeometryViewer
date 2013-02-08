@@ -32,10 +32,10 @@ for i in range(N):
                                ])
     arw = Shapes.arrow_head_polygon((x,-25),
                                     scale=10)
-    rect = Shapes.rotated_rectangle((x,25),
+    rect = Shapes.rotated_rectangle((x,-150),
                                     width=50,
                                     height=10,
-                                    angle=1.0*i/N * math.pi*2,
+                                    angle=-1.0*i/N * math.pi*2,
                                     )
     wheels = Shapes.rectangle_pair((x,-25),
                                    5.,2.,7.,
@@ -50,9 +50,14 @@ for i in range(N):
                    alpha=0.7)
 
     f.add_text(pos=(250,200),
-               face="Sans",
-               size=20,
-               text="Frame %d"%i,
+               face="Serif 18",
+               markup=("<big>Frame %d</big>\n"%i
+                       + "A <b>bold</b> line\n"
+                         "Greek: &#945;\n"
+                         "<span fgcolor=\"red\">R</span>"
+                         "<span fgcolor=\"green\">G</span>"
+                         "<span fgcolor=\"blue\">B</span>"),
+               align='center',
                color=Color.Color("darkgreen"))
     if v.user_break():
       break
