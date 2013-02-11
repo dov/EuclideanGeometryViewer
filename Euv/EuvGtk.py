@@ -225,7 +225,8 @@ class App(gtk.Window):
         if 'markup' in dc:
           pango_ctx = pangocairo.CairoContext(cr)
           layout = pango_ctx.create_layout()
-          layout.set_font_description(pango.FontDescription(dc['face']))
+          face = dc['face'] if 'face' in dc else 'Sans'
+          layout.set_font_description(pango.FontDescription(face))
           layout.set_markup(dc['markup'])
           cr.save()
           cr.translate(dc['pos'][0],dc['pos'][1])
@@ -247,6 +248,8 @@ class App(gtk.Window):
 
           if self.flip_y:
             cr.scale(1,-1)
+          if 'scale' in dc:
+            cr.scale(dc['scale'],dc['scale'])
           pango_ctx.show_layout(layout)
           cr.restore()
         else:
