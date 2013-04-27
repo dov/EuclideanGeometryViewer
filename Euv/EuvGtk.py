@@ -15,11 +15,14 @@ def get_val_default(hash,key,default):
     val = default
   return val
 
-def image_button(stock,size=gtk.ICON_SIZE_BUTTON):
+def set_image_for_button(stock, button):
   image = gtk.Image()
-  image.set_from_stock(stock,size)
+  image.set_from_stock(stock,gtk.ICON_SIZE_BUTTON)
+  button.set_image(image)
+
+def image_button(stock):
   b = gtk.Button()
-  b.set_image(image)
+  set_image_for_button(stock, b)
   b.set_label("")
   return b
 
@@ -35,7 +38,8 @@ class App(gtk.Window):
                recording=True,
                max_num_frames=None,
                flip_y=False,
-               title = 'Euv'):
+               title = 'Euv',
+               time_step = 0.1):
     gobject.threads_init()
     gtk.gdk.threads_init()
 
@@ -64,6 +68,7 @@ class App(gtk.Window):
     self.vbox.pack_start(hbox, False,True,0)
     self.recording = recording
     self.flip_y = flip_y
+    self.time_step = time_step
     if recording:
       self.buttonbox = gtk.HBox(False,0)
       hbox.pack_start(self.buttonbox, True,False,0)
@@ -92,7 +97,14 @@ class App(gtk.Window):
     self._user_break = False
     self.frames = []
     self.current_frame = -1
-    self.pause=False
+    self.pause = False
+    gobject.timeout_add(int(self.time_step*1000), self.play)
+
+  def play(self):
+    if not self.pause:
+      if self.current_frame < len(self.frames)-1:
+        self.set_current_frame(self.current_frame + 1)
+    return True
 
   def app_quit(self):
     self._user_break = True
@@ -101,6 +113,10 @@ class App(gtk.Window):
 
   def on_button_pause_clicked(self, widget):
     self.pause = not self.pause
+    if self.pause:
+      set_image_for_button(gtk.STOCK_MEDIA_PLAY, self.button_pause)
+    else:
+      set_image_for_button(gtk.STOCK_MEDIA_PAUSE, self.button_pause)
 
   def on_button_next_clicked(self, widget):
     if self.current_frame < len(self.frames)-1:
@@ -118,7 +134,7 @@ class App(gtk.Window):
 
   def on_frame_adjustment_value_changed(self,adjustment):
     new_frame = int(adjustment.value)
-    if new_frame < len(self.frames):
+    if new_frame != self.current_frame:
       self.set_current_frame(new_frame)
 
   # The following pair are needed for any external request for
@@ -141,27 +157,24 @@ class App(gtk.Window):
 
   def get_max_num_frames(self):
     return self.frame_adjustment.get_property("upper")
+    
+  def set_max_num_frames_t(self, max_num_frames):
+    self.frame_adjustment.set_property("upper",max_num_frames-1)
 
   def set_max_num_frames(self, max_num_frames):
-    self.frame_adjustment.set_property("upper",max_num_frames)
+    gobject.idle_add(self.set_max_num_frames_t, max_num_frames)
 
   def set_current_frame(self, index):
     self.current_frame = index
     if self.recording:
-      self.frame_adjustment.set_value(index)
+      gobject.idle_add(self.frame_adjustment.set_value, index)
     gobject.idle_add(self.redraw)
     
   def add_frame(self, frame):
     if self.recording:
       self.frames.append(frame)
-      num_frames = len(self.frames)-1
-      max_frames = self.get_max_num_frames()
-      if len(self.frames)-1 > self.get_max_num_frames():
-        self.set_max_num_frames(num_frames)
-
-    if self.recording:
-      if not self.pause:
-        self.set_current_frame(len(self.frames)-1)
+      num_frames = len(self.frames)
+      self.set_max_num_frames(num_frames)
     else:
       self.frames=[frame]
       self.set_current_frame(0)
@@ -291,7 +304,8 @@ class Viewer:
                view_port_width=None,
                recording=True,
                max_num_frames=None,
-               flip_y=False):
+               flip_y=False,
+               time_step = 0.1):
     # init gtk
     # Start the gtk application in a different thread
     self.app=App(size=size,
@@ -299,7 +313,8 @@ class Viewer:
                  view_port_width=view_port_width,
                  recording=recording,
                  max_num_frames=max_num_frames,
-                 flip_y = flip_y)
+                 flip_y = flip_y,
+                 time_step = time_step)
     self.t = Viewer.MyThread(self.app)
     self.t.start()
     self.frames = []
