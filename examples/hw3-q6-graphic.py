@@ -26,6 +26,7 @@
 # Please do not modify anything except where indicated
 # below.
 
+from __future__ import print_function
 from math import *
 import random
 import Euv.Frame as Frame
@@ -88,7 +89,7 @@ class robot:
     def set(self, new_x, new_y, new_orientation):
 
         if new_orientation < 0 or new_orientation >= 2 * pi:
-            raise ValueError, 'Orientation must be in [0..2pi]'
+            raise ValueError('Orientation must be in [0..2pi]')
         self.x = float(new_x)
         self.y = float(new_y)
         self.orientation = float(new_orientation)
@@ -127,7 +128,7 @@ class robot:
                 error *= (exp(- (error_bearing ** 2) / (self.bearing_noise ** 2) / 2.0) /  
                           sqrt(2.0 * pi * (self.bearing_noise ** 2)))
             except:
-                print "self.bearing_noise = ", self.bearing_noise
+                print("self.bearing_noise = ", self.bearing_noise)
                 raise
             
 
@@ -256,13 +257,13 @@ def print_measurements(Z):
 
     T = len(Z)
 
-    print 'measurements = [[%.8s, %.8s, %.8s, %.8s],' % \
-        (str(Z[0][0]), str(Z[0][1]), str(Z[0][2]), str(Z[0][3]))
+    print('measurements = [[%.8s, %.8s, %.8s, %.8s],' % \
+        (str(Z[0][0]), str(Z[0][1]), str(Z[0][2]), str(Z[0][3])))
     for t in range(1,T-1):
-        print '                [%.8s, %.8s, %.8s, %.8s],' % \
-            (str(Z[t][0]), str(Z[t][1]), str(Z[t][2]), str(Z[t][3]))
-    print '                [%.8s, %.8s, %.8s, %.8s]]' % \
-        (str(Z[T-1][0]), str(Z[T-1][1]), str(Z[T-1][2]), str(Z[T-1][3]))
+        print('                [%.8s, %.8s, %.8s, %.8s],' % \
+            (str(Z[t][0]), str(Z[t][1]), str(Z[t][2]), str(Z[t][3])))
+    print('                [%.8s, %.8s, %.8s, %.8s]]' % \
+        (str(Z[T-1][0]), str(Z[T-1][1]), str(Z[T-1][2]), str(Z[T-1][3])))
 
 # --------
 #
@@ -406,9 +407,9 @@ motions = [[2. * pi / 20, 12.] for row in range(number_of_iterations)]
 robots, measurements = generate_ground_truth(motions)
 estimated_position = particle_filter(motions, measurements, robots)
 print_measurements(measurements)
-print 'Ground truth:    ', robots[-1]
-print 'Particle filter: ', estimated_position
-print 'Code check:      ', check_output(robots[-1], estimated_position)
+print('Ground truth:    ', robots[-1])
+print('Particle filter: ', estimated_position)
+print('Code check:      ', check_output(robots[-1], estimated_position))
 
 
 

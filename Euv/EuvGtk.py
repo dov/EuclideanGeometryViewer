@@ -47,7 +47,7 @@ class App(gtk.Window):
       size= (800,600)
     self.view_port_center = view_port_center
     if view_port_width == None and view_port_height==None:
-      raise Exception("Either view_port_width or view_port_height must be set!")
+      raise RuntimeError("Either view_port_width or view_port_height must be set!")
     self.view_port_width = view_port_width
     self.view_port_height = view_port_height
 
