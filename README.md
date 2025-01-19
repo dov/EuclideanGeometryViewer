@@ -2,6 +2,10 @@
 
 The EuclideanGeometryViewer (or Euv for short) is a python module for displaying 2D graphics animation. It is based on the concept of frames, which is composed of a number of geometrical objects.
 
+It was developed in 2012 as a graphics framework (scratching my own itch) for the udacity course "How to Build a Self Driving Car".
+
+The graphics is shown using Gtk.
+
 # Installation
 
 This module is installed as a standard python module.
@@ -41,5 +45,4 @@ This script is released under the LGPL licence version 3.0
 # Author
 
 Dov Grobgeld <dov.grobgeld@gmail.com>
-Tuesday 2012-01-17 00:05 
- 
+Sun Jan 19 2025

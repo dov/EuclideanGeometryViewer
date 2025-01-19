@@ -1,4 +1,4 @@
-import Color
+import Euv.Color as Color
 
 class DrawingCommandCircle:
   def __repr__(self):

@@ -1,9 +1,19 @@
+#!/usr/bin/python
+
+######################################################################
+#  A test program Euv that creates 200 frames and in each frame
+#  show variosu aspects.
+#
+#  2025-01-19 Sun
+#  Dov Grobgeld <dov.grobgeld@gmail.com>
+######################################################################
 import Euv.Frame as Frame
 import Euv.EuvGtk as Euv
 import Euv.Color as Color
 import Euv.Shapes as Shapes
 import time
 import math
+import pdb
 
 N=200
 v = Euv.Viewer(size=(800,600),
